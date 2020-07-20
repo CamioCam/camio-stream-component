@@ -60,7 +60,7 @@ Unlike inputs, the outputs don't need to be declared in the html, instead they s
 **Note: This needs to be tested, syntax may be slightly off.**
 Some sample code to make this more clear:
 ```
-`<camio-stream-component></camio-stream-component>`
+<camio-stream-component></camio-stream-component>
 <script>
 connectedCallback(){
   ...
