@@ -87,6 +87,8 @@ connectedCallback(){
   - Payload: string or null
   - Description: Used to determine if the stream should be displaying a poster image, or if the stream should be live. To make the stream show, set this to null and make sure the component is recieving a .m3u8 manifest file in the stream input.
 
+- TODO: Possibly add an import to configure the video (controls, muted, autoplay, loop, etc.)
+
 ### Outputs
 - *focusVideo*
   - Payload: none
@@ -97,3 +99,28 @@ connectedCallback(){
   - Payload: boolean
   - Triggered: On mouseover, dispatch true, on mouseleave, dispatch false
   - Description: When the user hovers over the stream, an event is dispached with a 'true' payload, and when the user unhovers over the screen, the event has a 'false' payload
+
+- *hasErrored*
+  - Payload: boolean
+  - Triggered: Fires any time a stream moves in or out of the "failed" state
+  - Description: When a stream fails, the payload is "true", and when something happens to reset the state (either a button click or some change in the manifest url), the payload is "false"
+
+- *elementRefInitialized*
+  - Payload: ElementRef
+  - Triggered: Fires any time the HLS stream is set up and gives access to the `<video>` object.
+  - Description: When there is a live stream going, this allows you access to the `<video>` object (that you wouldn't otherwise have access to due to the properties of the shadowDom)
+
+### Models
+```
+LiveStream {
+  id: number; // Unique identifier
+  currentIndex: number // Where the stream is in the list (determined by either local storage or default)
+  manifestUrl: string // The url to the manifest file. Should be https.
+  online: boolean, // Whether the camera is online or not.
+  cameraName: string // The name of the camera
+  timeStamp: number // The current time stamp
+  labels: Array<string> // The labels used
+  isFocused: boolean; // Whether or not this stream is focused (big).
+  isSelected: boolean; // Whether or not the tag is selected for this stream
+}
+```
