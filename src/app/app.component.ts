@@ -38,7 +38,10 @@ export class AppComponent implements OnInit, OnChanges {
   @Output() showBorder: EventEmitter<boolean> = new EventEmitter<boolean>();
 
   /** When the video errors either because too many retries or link not working. */
-  @Output() hasErrored: EventEmitter<void> = new EventEmitter<void>();
+  @Output() hasErrored: EventEmitter<boolean> = new EventEmitter<boolean>();
+
+  /** A reference of the video to use in a parent. */
+  @Output() elementRefInitialized: EventEmitter<ElementRef> = new EventEmitter<ElementRef>()
 
   /** The video tag so we don't have to worry about shadow doms and encapsulation */
   @ViewChild("stream", { static: false }) videoElement: ElementRef;
@@ -50,14 +53,16 @@ export class AppComponent implements OnInit, OnChanges {
   ngOnChanges(changes: SimpleChanges): void {
     //Called before any other lifecycle hook. Use it to inject dependencies, but avoid any serious work here.
 
-    // In the future, we may have to decide if this is the desired behavior
+    // If this is the initial setup, this would be in ngOninit if we weren't listening to poster url)
     if (
       !!changes["stream"] &&
       this.posterUrl == null &&
       changes["stream"].firstChange
     ) {
+      this.hasErrored.emit(false)
       this.setupHls(this.stream);
     }
+    // If there are changes in the manifestUrl passed in
     if (
       !!changes["stream"] &&
       this.posterUrl == null &&
@@ -65,11 +70,17 @@ export class AppComponent implements OnInit, OnChanges {
       changes["stream"].currentValue["manifestUrl"] !==
         changes["stream"].previousValue["manifestUrl"]
     ) {
+      this.hasErrored.emit(false)
       this.setupHls(this.stream);
     }
+    // When the streamStatus changes (should we be streaming or showing poster)
     if (!!changes["posterUrl"] && !changes["posterUrl"].currentValue) {
       this.setupHls(this.stream);
     }
+    // Set error status to false if the user changes streams
+    if (!!changes["stream"] && !!changes["stream"].previousValue && changes["stream"].currentValue["manifestUrl"] !==
+    changes["stream"].previousValue["manifestUrl"])
+    this.hasErrored.emit(false)
   }
 
   /** Setup the HLS stream */
@@ -77,8 +88,8 @@ export class AppComponent implements OnInit, OnChanges {
     let retryCount = 3;
     // Retry Interval every 100ms
     let exists = setInterval(() => {
-      let camioStream = this.videoElement.nativeElement;
-      if (stream && retryCount != 0 && camioStream) {
+      if (stream && retryCount != 0 && this.videoElement && this.videoElement.nativeElement) {
+        let camioStream = this.videoElement.nativeElement
         clearInterval(exists);
         if (Hls.isSupported()) {
           let hls = new Hls();
@@ -99,7 +110,7 @@ export class AppComponent implements OnInit, OnChanges {
                 default:
                   // cannot recover
                   hls.destroy();
-                  this.hasErrored.emit()
+                  this.hasErrored.emit(true)
                   break;
               }
             }
@@ -112,18 +123,19 @@ export class AppComponent implements OnInit, OnChanges {
             camioStream.loop = true;
             hls.loadSource(stream.manifestUrl);
             hls.on(Hls.Events.MANIFEST_PARSED, (event, data) => {
-              //console.log(data)
+              this.elementRefInitialized.emit(this.videoElement)
             });
           });
         } else if (camioStream.canPlayType("application/vnd.apple.mpegurl")) {
           camioStream.src = stream.manifestUrl;
+          this.elementRefInitialized.emit(this.videoElement)
         }
       } else if (retryCount == 0) {
         clearInterval(exists);
-        this.hasErrored.emit();
+        this.hasErrored.emit(true);
       } else {
         retryCount--;
       }
-    }, 100);
+    }, 500);
   }
 }
