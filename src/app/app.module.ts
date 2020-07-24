@@ -22,6 +22,8 @@ export class AppModule {
     const liveStream = createCustomElement(AppComponent, { injector: this.inject });
     if (!customElements.get('camio-stream-component')) {
       customElements.define('camio-stream-component', liveStream);
+    } else {
+      console.warn("stream-component declared multiple times")
     }
   }
 }
