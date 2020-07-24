@@ -20,6 +20,8 @@ export class AppModule {
   }
   ngDoBootstrap() {
     const liveStream = createCustomElement(AppComponent, { injector: this.inject });
-    customElements.define('camio-stream-component', liveStream);
+    if (!customElements.get('camio-stream-component')) {
+      customElements.define('camio-stream-component', liveStream);
+    }
   }
 }
