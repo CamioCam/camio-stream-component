@@ -1,6 +1,6 @@
 <video #stream class="video" (click)="focusVideo.emit()" *ngIf="stream && !posterUrl" (mouseover)="showBorder.emit(true)"
-    (mouseleave)="showBorder.emit(false)" class="live-stream-{{stream.id}}" [style.height.px]="streamDim.height"
-    [style.width.px]="streamDim.width" autoPlay>
+    (mouseleave)="showBorder.emit(false)" class="live-stream-{{stream.id}}" [style.height.px]="streamDim ? streamDim.height : 100"
+    [style.width.px]="streamDim ? streamDim.width : 100" autoPlay>
 </video>
 <img draggable="false" [src]="posterUrl" (click)="focusVideo.emit()" *ngIf="posterUrl" (mouseover)="showBorder.emit(true)"
 (mouseleave)="showBorder.emit(false)" [style.height.px]="streamDim.height" [style.width.px]="streamDim.width">
